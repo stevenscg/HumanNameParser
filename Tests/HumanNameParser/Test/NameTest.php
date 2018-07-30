@@ -134,6 +134,7 @@ class NameTest extends \PHPUnit_Framework_TestCase {
 
     private function getNames()
     {
+        // Format: full name string;FINITIAL;FNAME;NICKNAME;MNAME;LNAME;SUFFIX
         return array(
             'Björn O\'Malley;;Björn;;;O\'Malley;',
             'Bin Lin;;Bin;;;Lin;',
@@ -170,6 +171,7 @@ class NameTest extends \PHPUnit_Framework_TestCase {
             'Smith / Joe;;Joe;;;Smith;',
             'Smith/ Ms Jane Middle;;Jane;;Middle;Smith;',
             'Smith Jr / Dr Joe;;Joe;;;Smith;Jr',
+            'Mr lemraan smith;;lemraan;;;smith;',
         );
     }
 }

@@ -17,7 +17,7 @@ class Parser {
     //    but you can select a particular parenthesized submatch to be returned.
     //    Also, note that each regex requires that the preceding ones have been run, and matches chopped out.
     CONST REGEX_NICKNAMES       =  "/ ('|\"|\(\"*'*)(.+?)('|\"|\"*'*\)) /i"; // names that starts or end w/ an apostrophe break this
-    CONST REGEX_TITLES          =  "/^(%s)\.*/i";
+    CONST REGEX_TITLES          =  "/^(%s)\s+/i";
     CONST REGEX_SUFFIX          =  "/(\*,) *(%s)$/i";
     CONST REGEX_LAST_NAME       =  "/(?!^)\b([^ ]+ y |%s)*[^ ]+$/i";
     CONST REGEX_LEADING_INITIAL =  "/^(.\.*)(?= \p{L}{2})/i"; // note the lookahead, which isn't returned or replaced
@@ -52,6 +52,7 @@ class Parser {
      * @var boolean
      */
     private $mandatoryLastName = true;
+
 
      /*
       * Constructor
@@ -113,7 +114,6 @@ class Parser {
 
         // Flip on commas
         $this->flipNameToken(",");
-
         $this->findLastName($prefixes);
         $this->findLeadingInitial();
         $this->findFirstName();
@@ -121,6 +121,7 @@ class Parser {
 
         return $this->name;
     }
+
 
     /**
      * @param  string $academicTitles
@@ -131,9 +132,9 @@ class Parser {
     {
         $regex = sprintf(self::REGEX_TITLES, $academicTitles);
         $title = $this->findWithRegex($regex, 1);
-        if($title) {
+        if ($title) {
             $this->name->setAcademicTitle($title);
-            $this->nameToken = str_ireplace($title, "", $this->nameToken);
+            $this->removeTokenWithRegex($regex, false);
         }
 
         return $this;
@@ -146,13 +147,14 @@ class Parser {
     private function findNicknames()
     {
         $nicknames = $this->findWithRegex(self::REGEX_NICKNAMES, 2);
-        if($nicknames) {
+        if ($nicknames) {
             $this->name->setNicknames($nicknames);
             $this->removeTokenWithRegex(self::REGEX_NICKNAMES);
         }
 
         return $this;
     }
+
 
     /**
      * @param  string $suffixes
@@ -165,13 +167,14 @@ class Parser {
         //var_dump($regex); die;
         //$regex = sprintf(self::REGEX_SUFFIX, $suffixes);
         $suffix = $this->findWithRegex($regex, 1);
-        if($suffix) {
+        if ($suffix) {
             $this->name->setSuffix($suffix);
             $this->removeTokenWithRegex($regex);
         }
 
         return $this;
     }
+
 
     /**
      * @return Parser
@@ -180,33 +183,33 @@ class Parser {
     {
         $regex = sprintf(self::REGEX_LAST_NAME, $prefixes);
         $lastName = $this->findWithRegex($regex, 0);
-        if($lastName) {
+        if ($lastName) {
             $this->name->setLastName($lastName);
             $this->removeTokenWithRegex($regex);
-        } elseif ($this->mandatoryLastName){
-
+        } elseif ($this->mandatoryLastName) {
             throw new LastNameNotFoundException("Couldn't find a last name.");
         }
 
         return $this;
     }
 
+
     /**
      * @return Parser
      */
     private function findFirstName()
     {
-        $lastName = $this->findWithRegex(self::REGEX_FIRST_NAME, 0);
-        if($lastName) {
-            $this->name->setFirstName($lastName);
+        $firstName = $this->findWithRegex(self::REGEX_FIRST_NAME, 0);
+        if ($firstName) {
+            $this->name->setFirstName($firstName);
             $this->removeTokenWithRegex(self::REGEX_FIRST_NAME);
         } elseif ($this->mandatoryFirstName) {
-
             throw new FirstNameNotFoundException("Couldn't find a first name.");
         }
 
         return $this;
     }
+
 
     /**
      * @return Parser
@@ -214,7 +217,7 @@ class Parser {
     private function findLeadingInitial()
     {
         $leadingInitial = $this->findWithRegex(self::REGEX_LEADING_INITIAL, 1);
-        if($leadingInitial) {
+        if ($leadingInitial) {
             $this->name->setLeadingInitial($leadingInitial);
             $this->removeTokenWithRegex(self::REGEX_LEADING_INITIAL);
         }
@@ -222,13 +225,14 @@ class Parser {
         return $this;
     }
 
+
     /**
      * @return Parser
      */
     private function findMiddleName()
     {
         $middleName = trim($this->nameToken);
-        if($middleName) {
+        if ($middleName) {
             $this->name->setMiddleName($middleName);
         }
 
@@ -252,7 +256,7 @@ class Parser {
     /**
      * @return void
      */
-    private function removeTokenWithRegex($regex)
+    private function removeTokenWithRegex($regex, $normalize = true)
     {
         $numReplacements = 0;
         $tokenRemoved = preg_replace($regex, ' ', $this->nameToken, -1, $numReplacements);
@@ -260,8 +264,14 @@ class Parser {
             throw new NameParsingException("The regex being used has multiple matches.");
         }
 
+        if (!$normalize) {
+            $this->nameToken = $tokenRemoved;
+            return;
+        }
+
         $this->nameToken = $this->normalize($tokenRemoved);
     }
+
 
     /**
      * Removes extra whitespace and punctuation from string
@@ -276,10 +286,11 @@ class Parser {
          $taintedString = preg_replace( "#^\s*#u", "", $taintedString );
          $taintedString = preg_replace( "#\s*$#u", "", $taintedString );
          $taintedString = preg_replace( "#\s+#u", " ", $taintedString );
-         $taintedString = preg_replace( "#,$#u", " ", $taintedString );
+         $taintedString = preg_replace( "#,$#u",  " ", $taintedString );
 
          return $taintedString;
     }
+
 
     /**
      * @return Parser
@@ -318,6 +329,7 @@ class Parser {
        return $string;
     }
 
+
     /**
      * Gets the value of suffixes.
      *
@@ -327,6 +339,7 @@ class Parser {
     {
         return $this->suffixes;
     }
+
 
     /**
      * Sets the value of suffixes.
@@ -342,6 +355,7 @@ class Parser {
         return $this;
     }
 
+
     /**
      * Gets the value of prefixes.
      *
@@ -351,6 +365,7 @@ class Parser {
     {
         return $this->prefixes;
     }
+
 
     /**
      * Sets the value of prefixes.
@@ -366,6 +381,7 @@ class Parser {
         return $this;
     }
 
+
     /**
      * Gets the value of academicTitles.
      *
@@ -375,6 +391,7 @@ class Parser {
     {
         return $this->academicTitles;
     }
+
 
     /**
      * Sets the value of academicTitles.
