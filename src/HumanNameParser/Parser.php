@@ -104,16 +104,23 @@ class Parser {
         $this->nameToken = $name;
         $this->name = new Name();
 
-        // Flip on slashes before any other transformations
-        $this->flipNameToken("\/");
+        // Flip on slashes before any other transformations.
+        $this->flipNameToken('/', [
+            [ 'limit' => 2, 'order' => [2,1,0] ], // Last / First / Title => Title First Last
+            [ 'limit' => 1, 'order' => [1,0]   ], // Last / First+ => First+ Last
+        ]);
 
         $this->findAcademicTitle($academicTitles);
         $this->findNicknames();
 
         $this->findSuffix($suffixes);
 
-        // Flip on commas
-        $this->flipNameToken(",");
+        // Flip on commas.
+        $this->flipNameToken(',', [
+            [ 'limit' => 2, 'order' => [1,2,0] ], // Last, First, Middle => First Middle Last
+            [ 'limit' => 1, 'order' => [1,0]   ], // Last, First+ => First+ Last
+        ]);
+
         $this->findLastName($prefixes);
         $this->findLeadingInitial();
         $this->findFirstName();
@@ -296,9 +303,9 @@ class Parser {
      * @return Parser
      * @param string $pattern
      */
-    private function flipNameToken($pattern = ",")
+    private function flipNameToken($char = ",", $patterns = [])
     {
-        $this->nameToken = $this->flipStringPartsAround($this->nameToken, $pattern);
+        $this->nameToken = $this->flipStringPartsAround($this->nameToken, $char, $patterns);
 
         return $this;
     }
@@ -309,24 +316,34 @@ class Parser {
      * Front and back are determined by a specified character somewhere in the
      * middle of the string.
      *
-     * @param  String $flipAroundChar  the character(s) demarcating the two halves you want to flip.
+     * @param  string $string The name string to flip.
+     * @param  string $char The character(s) demarcating the parts to flip.
+     * @param  array  $patterns An array of flip definitions.
      *
      * @return string
      */
-    private function flipStringPartsAround($string, $char)
+    private function flipStringPartsAround($string, $char, $patterns = [])
     {
-       $substrings = preg_split("/$char/u", $string);
+        foreach ($patterns as $item) {
+            // Automatically escape regex control characters.
+            $escapedChar = in_array($char, ['/']) ? "\\$char" : $char;
 
-       if (count($substrings) == 2) {
-           $string = $substrings[1] . " " . $substrings[0];
-           $string = $this->normalize($string);
-       }
-       else if (count($substrings) > 2) {
+            $substrings = preg_split("/$escapedChar/u", $string);
+            if ((count($substrings) - 1) !== $item['limit']) {
+                continue;
+            }
 
-           throw new NameParsingException("Can't flip around multiple '$char' characters in namestring.");
-       }
+            $pieces = [];
+            foreach ($item['order'] as $idx) {
+                $pieces[] = $substrings[$idx];
+            }
 
-       return $string;
+            // Return the re-ordered name string.
+            return $this->normalize(implode(' ', $pieces));
+        }
+
+        // Return the original name string unchanged.
+        return $string;
     }
 
 
