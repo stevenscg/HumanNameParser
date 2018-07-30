@@ -65,7 +65,7 @@ class Parser {
     {
         if (!isset($options['suffixes']))
         {
-            $options['suffixes'] = array('esq','esquire','jr','sr','2','ii','iii','iv');
+            $options['suffixes'] = array('esq','esquire','jr','sr','2','ii','iii','iv','\(child\)','child');
         }
         if (!isset($options['prefixes']))
         {
@@ -74,7 +74,7 @@ class Parser {
         }
         if (!isset($options['academic_titles']))
         {
-            $options['academic_titles'] =  array('ms','miss','mrs','mr','prof','dr');
+            $options['academic_titles'] =  array('ms','miss','mstr','mrs','mr','prof','dr');
         }
         if (isset($options['mandatory_first_name'])) {
             $this->mandatoryFirstName = (boolean) $options['mandatory_first_name'];

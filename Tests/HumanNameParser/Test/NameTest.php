@@ -172,6 +172,8 @@ class NameTest extends \PHPUnit_Framework_TestCase {
             'Smith/ Ms Jane Middle;;Jane;;Middle;Smith;',
             'Smith Jr / Dr Joe;;Joe;;;Smith;Jr',
             'Mr lemraan smith;;lemraan;;;smith;',
+            'First Last Child;;First;;;Last;Child',
+            'Mstr First Middle Last (Child);;First;;Middle;Last;(Child)',
         );
     }
 }
