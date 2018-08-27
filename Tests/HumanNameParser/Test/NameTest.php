@@ -169,6 +169,7 @@ class NameTest extends \PHPUnit_Framework_TestCase {
             'O\'Malley y Muñoz, C. Björn Roger III;C.;Björn;;Roger;O\'Malley y Muñoz;III',
             'O\'Malley / C. Björn;C.;Björn;;;O\'Malley;',
             'Smith / Joe;;Joe;;;Smith;',
+            'CHEKOV/CHEK MR;;CHEK;;;CHEKOV;',
             'Smith/ Ms Jane Middle;;Jane;;Middle;Smith;',
             'Smith Jr / Dr Joe;;Joe;;;Smith;Jr',
             'Smith/Jane/Ms;;Jane;;;Smith;',

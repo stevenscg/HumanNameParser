@@ -17,7 +17,7 @@ class Parser {
     //    but you can select a particular parenthesized submatch to be returned.
     //    Also, note that each regex requires that the preceding ones have been run, and matches chopped out.
     CONST REGEX_NICKNAMES       =  "/ ('|\"|\(\"*'*)(.+?)('|\"|\"*'*\)) /i"; // names that starts or end w/ an apostrophe break this
-    CONST REGEX_TITLES          =  "/^(%s)\s+/i";
+    CONST REGEX_TITLES          =  "/(%s)\s+/i";
     CONST REGEX_SUFFIX          =  "/(\*,) *(%s)$/i";
     CONST REGEX_LAST_NAME       =  "/(?!^)\b([^ ]+ y |%s)*[^ ]+$/i";
     CONST REGEX_LEADING_INITIAL =  "/^(.\.*)(?= \p{L}{2})/i"; // note the lookahead, which isn't returned or replaced
@@ -171,8 +171,6 @@ class Parser {
     private function findSuffix($suffixes)
     {
         $regex = "/,* *($suffixes)$/i";
-        //var_dump($regex); die;
-        //$regex = sprintf(self::REGEX_SUFFIX, $suffixes);
         $suffix = $this->findWithRegex($regex, 1);
         if ($suffix) {
             $this->name->setSuffix($suffix);
