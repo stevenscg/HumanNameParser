@@ -16,12 +16,12 @@ class Parser {
     // The regex use is a bit tricky.  *Everything* matched by the regex will be replaced,
     //    but you can select a particular parenthesized submatch to be returned.
     //    Also, note that each regex requires that the preceding ones have been run, and matches chopped out.
-    CONST REGEX_NICKNAMES       =  "/ ('|\"|\(\"*'*)(.+?)('|\"|\"*'*\)) /i"; // names that starts or end w/ an apostrophe break this
-    CONST REGEX_TITLES          =  "/(%s)\s+/i";
-    CONST REGEX_SUFFIX          =  "/(\*,) *(%s)$/i";
-    CONST REGEX_LAST_NAME       =  "/(?!^)\b([^ ]+ y |%s)*[^ ]+$/i";
-    CONST REGEX_LEADING_INITIAL =  "/^(.\.*)(?= \p{L}{2})/i"; // note the lookahead, which isn't returned or replaced
-    CONST REGEX_FIRST_NAME      =  "/^[^ ]+/i"; //
+    CONST REGEX_NICKNAMES       =  "/ ('|\"|\(\"*'*)(.+?)('|\"|\"*'*\)) /ui"; // names that starts or end w/ an apostrophe break this
+    CONST REGEX_TITLES          =  "/(%s)\s+/ui";
+    CONST REGEX_SUFFIX          =  "/,*\s+(%s)$/ui";
+    CONST REGEX_LAST_NAME       =  "/(?!^)\b([^ ]+ y |%s)*[^ ]+$/ui";
+    CONST REGEX_LEADING_INITIAL =  "/^(.\.*)(?= \p{L}{2})/ui"; // note the lookahead, which isn't returned or replaced
+    CONST REGEX_FIRST_NAME      =  "/^[^ ]+/ui";
 
     /**
      * @var array
@@ -61,20 +61,29 @@ class Parser {
       *                 'suffixes' for an array of suffixes
       *                 'prefix' for an array of prefixes
       */
-    public function __construct($options = array())
+    public function __construct($options = [])
     {
         if (!isset($options['suffixes']))
         {
-            $options['suffixes'] = array('esq','esquire','jr','sr','2','ii','iii','iv','\(child\)','child');
+            $options['suffixes'] = [
+                'esq','esquire','phd',
+                'jr','sr','2','ii','iii','iv','v',
+                '\(child\)','child',
+            ];
         }
         if (!isset($options['prefixes']))
         {
-            $options['prefixes'] =  array('bar','ben','bin','da','dal','de la', 'de', 'del','der','di',
-                          'ibn','la','le','san','st','ste','van', 'van der', 'van den', 'vel','von');
+            $options['prefixes'] = [
+                'bar','ben','bin','da','dal','de la','de','del','der','di','ibn','la','le','san',
+                'st','ste','van','van der','van den','vel','von',
+            ];
         }
         if (!isset($options['academic_titles']))
         {
-            $options['academic_titles'] =  array('ms','miss','mstr','mrs','mr','prof','dr');
+            $options['academic_titles'] = [
+                'ms','miss','mstr','mrs','mr','mme','mma','mlle','enfant',
+                'prof','dr',
+            ];
         }
         if (isset($options['mandatory_first_name'])) {
             $this->mandatoryFirstName = (boolean) $options['mandatory_first_name'];
@@ -97,8 +106,8 @@ class Parser {
      */
     public function parse($name)
     {
-        $suffixes = implode("\.*|", $this->suffixes) . "\.*"; // each suffix gets a "\.*" behind it.
-        $prefixes = implode(" |", $this->prefixes) . " "; // each prefix gets a " " behind it.
+        $suffixes       = implode("\.*|", $this->suffixes) . "\.*"; // each suffix gets a "\.*" behind it.
+        $prefixes       = implode(" |", $this->prefixes) . " "; // each prefix gets a " " behind it.
         $academicTitles = implode("\.*|", $this->academicTitles) . "\.*"; // each suffix gets a "\.*" behind it.
 
         $this->nameToken = $name;
@@ -112,7 +121,6 @@ class Parser {
 
         $this->findAcademicTitle($academicTitles);
         $this->findNicknames();
-
         $this->findSuffix($suffixes);
 
         // Flip on commas.
@@ -122,6 +130,7 @@ class Parser {
         ]);
 
         $this->findLastName($prefixes);
+
         $this->findLeadingInitial();
         $this->findFirstName();
         $this->findMiddleName();
@@ -170,7 +179,7 @@ class Parser {
      */
     private function findSuffix($suffixes)
     {
-        $regex = "/,* *($suffixes)$/i";
+        $regex = sprintf(self::REGEX_SUFFIX, $suffixes);
         $suffix = $this->findWithRegex($regex, 1);
         if ($suffix) {
             $this->name->setSuffix($suffix);
@@ -250,7 +259,6 @@ class Parser {
      */
     private function findWithRegex($regex, $submatchIndex = 0)
     {
-        $regex = $regex . "ui"; // unicode + case-insensitive
         preg_match($regex, $this->nameToken, $m);
         $subset = (isset($m[$submatchIndex])) ? $m[$submatchIndex] : false;
 
@@ -298,8 +306,9 @@ class Parser {
 
 
     /**
+     * @param  string $char The character(s) demarcating the parts to flip.
+     * @param  array  $patterns An array of flip definitions.
      * @return Parser
-     * @param string $pattern
      */
     private function flipNameToken($char = ",", $patterns = [])
     {
@@ -326,18 +335,18 @@ class Parser {
             // Automatically escape regex control characters.
             $escapedChar = in_array($char, ['/']) ? "\\$char" : $char;
 
-            $substrings = preg_split("/$escapedChar/u", $string);
+            $substrings = preg_split("/$escapedChar/ui", $string);
             if ((count($substrings) - 1) !== $item['limit']) {
                 continue;
             }
 
             $pieces = [];
             foreach ($item['order'] as $idx) {
-                $pieces[] = $substrings[$idx];
+                $pieces[] = $this->normalize($substrings[$idx]);
             }
 
             // Return the re-ordered name string.
-            return $this->normalize(implode(' ', $pieces));
+            return implode(' ', $pieces);
         }
 
         // Return the original name string unchanged.
