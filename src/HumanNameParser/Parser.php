@@ -81,8 +81,27 @@ class Parser {
         if (!isset($options['academic_titles']))
         {
             $options['academic_titles'] = [
-                'ms','miss','mstr','mrs','mr','mme','mma','mlle','enfant',
-                'prof','dr',
+                'ms','miss','mstr','mrs','mr','mme','mma','mlle','enfant', 'prof','dr',
+                // Country: BE / Locale: NL
+                'dhr','mw','mej',
+                // Country: DK / Locale: DA
+                'hr','fru','frk',
+                // Country: FR / Locale: FR
+                'm','mme','mlle',
+                // Country: DE / Locale: DE
+                'herr','frau','fräulein',
+                // Country: HU / Locale: HU
+                'úr','hölgy','ifj',
+                // Country: IT / Locale: IT
+                'sig','sig\.ra','sig\.na',
+                // Country: PL / Locale: PL
+                'pan','pani','panna',
+                // Country: PT / Locale: PT
+                'sr','sra','m\.na',
+                // Country: ES / Locale: ES
+                'sr','sra','srta',
+                // Country: SE / Locale: SV
+                'herr','fru','fröken',
             ];
         }
         if (isset($options['mandatory_first_name'])) {
