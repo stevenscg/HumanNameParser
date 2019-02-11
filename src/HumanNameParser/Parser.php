@@ -17,7 +17,7 @@ class Parser {
     //    but you can select a particular parenthesized submatch to be returned.
     //    Also, note that each regex requires that the preceding ones have been run, and matches chopped out.
     CONST REGEX_NICKNAMES       =  "/ ('|\"|\(\"*'*)(.+?)('|\"|\"*'*\)) /ui"; // names that starts or end w/ an apostrophe break this
-    CONST REGEX_TITLES          =  "/(%s)\s+/ui";
+    CONST REGEX_TITLES          =  "/\b\s*(%s)\s*\b/ui";
     CONST REGEX_SUFFIX          =  "/,*\s+(%s)$/ui";
     CONST REGEX_LAST_NAME       =  "/(?!^)\b([^ ]+ y |%s)*[^ ]+$/ui";
     CONST REGEX_LEADING_INITIAL =  "/^(.\.*)(?= \p{L}{2})/ui"; // note the lookahead, which isn't returned or replaced

@@ -51,7 +51,7 @@ class NameTest extends \PHPUnit_Framework_TestCase {
         $this->assertEquals('Hans', $nameObject->getFirstName());
     }
 
-    public function testithAcademicTitle()
+    public function testWithAcademicTitle()
     {
         $name = 'Dr. Hans Meiser';
         $nameObject = $this->parser->parse($name);
@@ -174,9 +174,14 @@ class NameTest extends \PHPUnit_Framework_TestCase {
             'Smith/Jane/Ms;;Jane;;;Smith;',
             'Smith / Jane / Ms;;Jane;;;Smith;',
             'CHEKOV/CHEK MR;;CHEK;;;CHEKOV;',
+            'LAURA/ADAM;;ADAM;;;LAURA;',
             'Smith,Jane;;Jane;;;Smith;',
             'Smith, Jane, Middle;;Jane;;Middle;Smith;',
             'Mr lemraan smith;;lemraan;;;smith;',
+            'Mstr Liam Patrick Grogan;;Liam;;Patrick;Grogan;',
+            'Fräulein Charlotte Madison Jane;;Charlotte;;Madison;Jane;',
+            'Sr Joe Herreras;;Joe;;;Herreras;',
+            'Mlle Claire E Maisal;;Claire;;E;Maisal;',
             'First Last Child;;First;;;Last;Child',
             'Mstr First Middle Last (Child);;First;;Middle;Last;(Child)',
         );
