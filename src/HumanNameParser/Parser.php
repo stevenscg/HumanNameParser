@@ -87,7 +87,7 @@ class Parser {
                 // Country: DK / Locale: DA
                 'hr','fru','frk',
                 // Country: FR / Locale: FR
-                'm','mme','mlle',
+                'mme','mlle',
                 // Country: DE / Locale: DE
                 'herr','frau','fräulein',
                 // Country: HU / Locale: HU
@@ -137,6 +137,18 @@ class Parser {
             [ 'limit' => 2, 'order' => [2,1,0] ], // Last / First / Title => Title First Last
             [ 'limit' => 1, 'order' => [1,0]   ], // Last / First+ => First+ Last
         ]);
+
+        // Handle a trailing academic title in the pattern Last First+ Title
+        $regex = sprintf("/\b(%s)$/ui", $academicTitles);
+        $title = $this->findWithRegex($regex, 1);
+        if (!empty($title)) {
+            $this->name->setAcademicTitle($title);
+            $this->removeTokenWithRegex($regex, true);
+            $this->flipNameToken(' ', [
+                [ 'limit' => 2, 'order' => [1,2,0] ], // Last First Middle => First Middle Last
+                [ 'limit' => 1, 'order' => [1,0]   ], // Last First+ => First+ Last
+            ]);
+        }
 
         $this->findAcademicTitle($academicTitles);
         $this->findNicknames();
@@ -288,11 +300,11 @@ class Parser {
     /**
      * @return void
      */
-    private function removeTokenWithRegex($regex, $normalize = true)
+    private function removeTokenWithRegex($regex, $normalize = true, $limit = -1)
     {
         $numReplacements = 0;
-        $tokenRemoved = preg_replace($regex, ' ', $this->nameToken, -1, $numReplacements);
-        if ($numReplacements > 1) {
+        $tokenRemoved = preg_replace($regex, ' ', $this->nameToken, $limit, $numReplacements);
+        if (($numReplacements > 1) && ($limit > 0)) {
             throw new NameParsingException("The regex being used has multiple matches.");
         }
 
