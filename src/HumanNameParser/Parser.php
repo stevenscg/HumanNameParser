@@ -81,7 +81,7 @@ class Parser {
         if (!isset($options['academic_titles']))
         {
             $options['academic_titles'] = [
-                'ms','miss','mstr','mrs','mr','mme','mma','mlle','enfant', 'prof','dr',
+                'ms','miss','mstr','mrs','mr','mme','mma','mlle','enfant','prof','dr',
                 // Country: BE / Locale: NL
                 'dhr','mw','mej',
                 // Country: DK / Locale: DA
@@ -131,6 +131,15 @@ class Parser {
 
         $this->nameToken = $name;
         $this->name = new Name();
+
+        // Handle leading combinations of academic titles.
+        // Mrs. / Ms.
+        $regex = '/^(mrs\.? \/ ms\.?)/ui';
+        $title = $this->findWithRegex($regex, 1);
+        if (!empty($title)) {
+            $this->name->setAcademicTitle($title);
+            $this->removeTokenWithRegex($regex, true);
+        }
 
         // Flip on slashes before any other transformations.
         $this->flipNameToken('/', [
